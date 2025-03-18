@@ -11,6 +11,7 @@ import "@xterm/xterm/css/xterm.css";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { MdFilledButton, MdListItem, MdRadio } from "@material/web/all.js";
+import axios from "axios";
 
 // @ts-ignore
 const __version__ = "0.0.1";
@@ -45,16 +46,11 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
                 <md-filled-button id="up1btn">
                     Upload Boot Image
                 </md-filled-button>
-                <input style="display: none;" type="file" name="up1" id="up1">
-                <div class="row">
-                    <md-filled-tonal-button style="flex-grow: 1;" id="up2btn">
-                        Upload Magisk Apk
-                    </md-filled-tonal-button>
-                    <md-filled-button id="loadbtn" style="display: flex;flex-grow: 1;">
-                        Load From Online
-                    </md-filled-button>
-                </div>
-                <input style="display:none;" type="file" name="up2" id="up2">
+                <input style="display: none;" type="file" name="up1" id="up1" accept=".img, .bin">
+                <md-filled-tonal-button style="flex-grow: 1;" id="up2btn" >
+                    Upload Magisk Apk
+                </md-filled-tonal-button>
+                <input style="display:none;" type="file" name="up2" id="up2" accept=".apk, .zip">
                 <md-divider></md-divider>
                 <h3>Arch</h3>
                 <md-list style="background-color: transparent;">
@@ -101,7 +97,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     </main>
 
     <footer>
-        <div>2025 © CircleCashTeam ⭕💰 All rights reserved</div>
+        <div>2025 © <a style="color: var(--md-sys-color-on-background)" href="https://github.com/CircleCashTeam">CircleCashTeam<a> ⭕💰 All rights reserved</div>
     </footer>
     <script src="/magiskboot.js"></script>
 `;
@@ -219,7 +215,7 @@ window.addEventListener("resize", () => {
 //setupDownloadLink();
 
 function print_progress(total: number, value: number, label: string) {
-  const width = 30; // 进度条的总长度（单位：字符）
+  const width = 10; // 进度条的总长度（单位：字符）
   const char_style = "\x1b[46;96m"; // 蓝色背景，亮蓝色文字
   const char_style2 = "\x1b[95m"; // 黑色背景，亮紫色文字
   const label_style = "\x1b[96m";
@@ -253,36 +249,75 @@ function print_progress(total: number, value: number, label: string) {
 
   // 组合进度条
   const progressBar = `${filledBar}${partialBar}${emptyBar}`;
-  const percentText = `${(percentage * 100).toFixed(1)}%`; // 百分比文本
+  const percentText = `${(percentage * 100).toFixed(1)}%`.padEnd(6); // 百分比文本
 
   const doneText = percentage == 1.0 ? "\x1b[92mDone!\x1b[0m\n\r" : "";
   // 输出到终端
   terminal.write(
-    `\r\x1b[94mProgress: ${char_style}${progressBar}${char_empty} ${char_style2}${percentText}${char_empty}\t ${label_style}${label} ${doneText}${char_empty}`
+    `\r\x1b[94mProgress: \x1b[90;106m${char_style}${progressBar}\x1b[96;100m${char_empty} ${char_style2}${percentText}${char_empty} ${label_style}${label} ${doneText}${char_empty}`
   );
 }
 
+let bootArray: ArrayBuffer | null = null;
+let apkArray: ArrayBuffer | null = null;
+
 document.getElementById("up1btn")!.addEventListener("click", () => {
   logi("Upload boot image.");
+  document.querySelector<HTMLInputElement>("#up1")?.click();
 });
+
+document
+  .querySelector<HTMLInputElement>("#up2")
+  ?.addEventListener("change", (event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files ? target.files[0] : null;
+    if (file) {
+      logi("Handle uploaded apk file...");
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        apkArray = e.target?.result as ArrayBuffer;
+        logs("Success upload file");
+      };
+
+      reader.onerror = (e) => {
+        loge(`Read error: ${e.target?.error}`);
+      };
+
+      reader.readAsArrayBuffer(file);
+    } else {
+      logi("File not uploaded!");
+    }
+  });
+
+document
+  .querySelector<HTMLInputElement>("#up1")
+  ?.addEventListener("change", (event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files ? target.files[0] : null;
+    if (file) {
+      logi("Handle uploaded boot image...");
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        bootArray = e.target?.result as ArrayBuffer;
+        logs("Success upload file");
+      };
+
+      reader.onerror = (e) => {
+        loge(`Read error: ${e.target?.error}`);
+      };
+
+      reader.readAsArrayBuffer(file);
+    } else {
+      logi("File not uploaded!");
+    }
+  });
 
 document.getElementById("up2btn")!.addEventListener("click", () => {
   logi("Upload magisk apk.");
-  // 示例：模拟进度更新
-  let total = 100.0;
-  let value = 0.0;
-
-  const interval = setInterval(() => {
-    value += 0.1; // 每次增加 5
-    print_progress(total, value, "Download Magisk Apk...");
-
-    if (value >= total) {
-      clearInterval(interval);
-    }
-  }, 10); // 每 200ms 更新一次
+  document.querySelector<HTMLInputElement>("#up2")?.click();
 });
-
-document.getElementById("loadbtn")!.addEventListener("click", () => {});
 
 document.querySelector<MdListItem>("#list1")!.addEventListener("click", () => {
   document.querySelector<MdRadio>("#arm64")!.checked = true;
@@ -303,7 +338,32 @@ document
   .addEventListener("click", async () => {
     const worker = new Worker(new URL("./boot_patcher.js", import.meta.url));
 
-    worker.postMessage({ type: "start", data: {} });
+    if (!bootArray) {
+      loge("Boot image not loaded!");
+      return;
+    }
+
+    if (!apkArray) {
+      apkArray = await getArrayBuffer();
+    }
+
+    if (apkArray) {
+      console.log("Get apk data:", apkArray);
+      console.log("Get boot data:", bootArray);
+      const metadata = {
+        type: "start",
+      };
+
+      const message = {
+        apkBuffer: apkArray,
+        bootBuffer: bootArray,
+        metadata: metadata,
+      };
+      worker.postMessage(message);
+    } else {
+      loge("Could not get magisk from online!");
+      return;
+    }
 
     worker.onmessage = (e) => {
       const type = e.data.type;
@@ -336,5 +396,68 @@ document
 
     worker.onerror = function (error) {
       loge(`Worker error: ${error}`);
+      worker.terminate();
     };
   });
+
+async function getDownloadLink() {
+  const apiurl =
+    "https://api.github.com/repos/topjohnwu/Magisk/releases/latest";
+  const crosProxy = "https://api.codetabs.com/v1/proxy?quest=";
+  const response = await fetch(apiurl);
+
+  if (!response.ok) {
+    throw new Error("Network response not ok!");
+  }
+
+  const data = await response.json();
+  const assets = data.assets;
+
+  let downloadLink = "";
+  let totalSize = 0;
+  assets.forEach(
+    (asset: { name: string; browser_download_url: string; size: number }) => {
+      if (asset.name.startsWith("Magisk") && asset.name.endsWith(".apk")) {
+        downloadLink = asset.browser_download_url;
+        totalSize = asset.size;
+      }
+    }
+  );
+  if (downloadLink == "") {
+    return { downloadLink, totalSize };
+  }
+
+  return { downloadLink: crosProxy + downloadLink, totalSize };
+}
+
+async function getArrayBuffer(): Promise<ArrayBuffer | null> {
+  try {
+    const { downloadLink, totalSize } = await getDownloadLink();
+    if (downloadLink == "") {
+      loge("Could not get download url");
+      return null;
+    } else {
+      logd(`Get download url: ${downloadLink}`);
+    }
+    const resp = await axios({
+      url: downloadLink,
+      method: "GET",
+      responseType: "arraybuffer",
+      onDownloadProgress: (e) => {
+        print_progress(totalSize, e.loaded, "Loading from online...");
+      },
+    });
+    return resp.data; // 返回 ArrayBuffer
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      loge(`Axios error: ${error.message}`);
+      if (error.response) {
+        loge(`Response status: ${error.response.status}`);
+        loge(`Response data: ${error.response.data}`);
+      }
+    } else {
+      loge(`Unknown error: ${error}`);
+    }
+    return null;
+  }
+}
