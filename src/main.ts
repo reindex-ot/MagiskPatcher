@@ -1,19 +1,23 @@
-import './dark.css'
-import './light.css'
-import './style.css'
-import './fonts.css'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 
-import '@material/web/all.js'
+import "./dark.css";
+import "./light.css";
+import "./style.css";
+import "./fonts.css";
 
-import '@xterm/xterm/css/xterm.css'
-import { Terminal } from "@xterm/xterm"
-import { FitAddon } from "@xterm/addon-fit"
-import { MdFilledButton, MdListItem, MdRadio } from '@material/web/all.js'
+import "@material/web/all.js";
 
-const __version__ = "0.0.1"
-const __author__ = "affggh"
+import "@xterm/xterm/css/xterm.css";
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
+import { MdFilledButton, MdListItem, MdRadio } from "@material/web/all.js";
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+// @ts-ignore
+const __version__ = "0.0.1";
+// @ts-ignore
+const __author__ = "affggh";
+
+document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <header class="appbar">
         <div class="row">
             <md-icon style="--md-icon-size: 36px" tabindex="-1">
@@ -100,18 +104,18 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <div>2025 © CircleCashTeam ⭕💰 All rights reserved</div>
     </footer>
     <script src="/magiskboot.js"></script>
-`
+`;
 
 const body = document.body;
-const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
 function setTheme(isDarkMode: boolean) {
   if (isDarkMode) {
-    body.classList.remove('light');
-    body.classList.add('dark');
+    body.classList.remove("light");
+    body.classList.add("dark");
   } else {
-    body.classList.remove('dark');
-    body.classList.add('light');
+    body.classList.remove("dark");
+    body.classList.add("light");
   }
 }
 
@@ -120,12 +124,16 @@ if (darkModeMediaQuery.matches) {
 }
 
 const terminal = new Terminal({
-  fontFamily: 'Iosevka, monospace',
+  fontFamily: "Iosevka, monospace",
   fontSize: 14,
   letterSpacing: 0,
   theme: {
-    background: getComputedStyle(body).getPropertyValue('--md-sys-color-surface-variant').trim(),
-    foreground: getComputedStyle(body).getPropertyValue('--md-sys-color-on-surface-variant').trim(),
+    background: getComputedStyle(body)
+      .getPropertyValue("--md-sys-color-surface-variant")
+      .trim(),
+    foreground: getComputedStyle(body)
+      .getPropertyValue("--md-sys-color-on-surface-variant")
+      .trim(),
   },
   scrollOnUserInput: true,
 });
@@ -137,7 +145,7 @@ class LogType {
   static ERRO = 3;
   static CRIT = 4;
   static DEBU = 5;
-};
+}
 
 function printlog(msg: string, type: LogType) {
   let color = "\x1b[0m"; // normal
@@ -145,11 +153,11 @@ function printlog(msg: string, type: LogType) {
   switch (type) {
     case LogType.INFO:
       color = "\x1b[94m"; // blue
-      level = "Info:"
+      level = "Info:";
       break;
     case LogType.WARN:
       color = "\x1b[93m";
-      level = "Warning:"
+      level = "Warning:";
       break;
     case LogType.SUCC:
       color = "\x1b[92m";
@@ -170,28 +178,43 @@ function printlog(msg: string, type: LogType) {
     default:
       break;
   }
-  terminal.writeln(color + level + ' ' + msg + "\x1b[0m");
+  terminal.writeln(color + level + " " + msg + "\x1b[0m");
   terminal.scrollToBottom();
 }
 
-function logi(msg: string) { printlog(msg, LogType.INFO) };
-function logw(msg: string) { printlog(msg, LogType.WARN) };
-function logs(msg: string) { printlog(msg, LogType.SUCC) };
-function loge(msg: string) { printlog(msg, LogType.ERRO) };
-function logc(msg: string) { printlog(msg, LogType.CRIT) };
-function logd(msg: string) { printlog(msg, LogType.DEBU) };
+// @ts-ignore
+function logi(msg: string) {
+  printlog(msg, LogType.INFO);
+}
+// @ts-ignore
+function logw(msg: string) {
+  printlog(msg, LogType.WARN);
+}
+// @ts-ignore
+function logs(msg: string) {
+  printlog(msg, LogType.SUCC);
+}
+// @ts-ignore
+function loge(msg: string) {
+  printlog(msg, LogType.ERRO);
+}
+// @ts-ignore
+function logc(msg: string) {
+  printlog(msg, LogType.CRIT);
+}
+// @ts-ignore
+function logd(msg: string) {
+  printlog(msg, LogType.DEBU);
+}
 
 const fitAddon = new FitAddon();
 terminal.loadAddon(fitAddon);
-terminal.open(document.querySelector<HTMLDivElement>('#terminal')!);
+terminal.open(document.querySelector<HTMLDivElement>("#terminal")!);
 fitAddon.fit();
 
-window.addEventListener(
-  'resize',
-  () => {
-    fitAddon.fit();
-  }
-);
+window.addEventListener("resize", () => {
+  fitAddon.fit();
+});
 
 //setupDownloadLink();
 
@@ -209,7 +232,9 @@ function print_progress(total: number, value: number, label: string) {
   const percentage = Math.min(value / total, 1); // 确保不超过 100%
   const filledLength = width * percentage; // 已填充的长度
   const fullBlocks = Math.floor(filledLength); // 完整填充的块数
-  const partialBlockIndex = Math.floor((filledLength - fullBlocks) * (fillChars.length - 1)); // 部分填充的字符索引
+  const partialBlockIndex = Math.floor(
+    (filledLength - fullBlocks) * (fillChars.length - 1)
+  ); // 部分填充的字符索引
 
   // 构建进度条
   let filledBar, partialBar, emptyBar;
@@ -232,85 +257,84 @@ function print_progress(total: number, value: number, label: string) {
 
   const doneText = percentage == 1.0 ? "\x1b[92mDone!\x1b[0m\n\r" : "";
   // 输出到终端
-  terminal.write(`\r\x1b[94mProgress: ${char_style}${progressBar}${char_empty} ${char_style2}${percentText}${char_empty}\t ${label_style}${label} ${doneText}${char_empty}`);
+  terminal.write(
+    `\r\x1b[94mProgress: ${char_style}${progressBar}${char_empty} ${char_style2}${percentText}${char_empty}\t ${label_style}${label} ${doneText}${char_empty}`
+  );
 }
 
-document.getElementById("up1btn")!.addEventListener(
-  'click', () => {
-    logi("Upload boot image.");
-  }
-);
+document.getElementById("up1btn")!.addEventListener("click", () => {
+  logi("Upload boot image.");
+});
 
-document.getElementById("up2btn")!.addEventListener(
-  'click', () => {
-    logi("Upload magisk apk.");
-    // 示例：模拟进度更新
-    let total = 100.0;
-    let value = 0.0;
+document.getElementById("up2btn")!.addEventListener("click", () => {
+  logi("Upload magisk apk.");
+  // 示例：模拟进度更新
+  let total = 100.0;
+  let value = 0.0;
 
-    const interval = setInterval(() => {
-      value += 0.1; // 每次增加 5
-      print_progress(total, value, "Download Magisk Apk...");
+  const interval = setInterval(() => {
+    value += 0.1; // 每次增加 5
+    print_progress(total, value, "Download Magisk Apk...");
 
-      if (value >= total) {
-        clearInterval(interval);
-      }
-    }, 10); // 每 200ms 更新一次
-  }
-);
+    if (value >= total) {
+      clearInterval(interval);
+    }
+  }, 10); // 每 200ms 更新一次
+});
 
-document.getElementById("loadbtn")!.addEventListener(
-  'click', () => {
-  }
-)
+document.getElementById("loadbtn")!.addEventListener("click", () => {});
 
-document.querySelector<MdListItem>("#list1")!.addEventListener('click', e => {
+document.querySelector<MdListItem>("#list1")!.addEventListener("click", () => {
   document.querySelector<MdRadio>("#arm64")!.checked = true;
 });
 
-document.querySelector<MdListItem>("#list2")!.addEventListener('click', e => {
+document.querySelector<MdListItem>("#list2")!.addEventListener("click", () => {
   document.querySelector<MdRadio>("#arm32")!.checked = true;
 });
-document.querySelector<MdListItem>("#list4")!.addEventListener('click', e => {
+document.querySelector<MdListItem>("#list4")!.addEventListener("click", () => {
   document.querySelector<MdRadio>("#x86_64")!.checked = true;
 });
-document.querySelector<MdListItem>("#list3")!.addEventListener('click', e => {
+document.querySelector<MdListItem>("#list3")!.addEventListener("click", () => {
   document.querySelector<MdRadio>("#x86")!.checked = true;
 });
 
-document.querySelector<MdFilledButton>("#testbtn")!.addEventListener('click', async e => {
-  const worker = new Worker(new URL("./boot_patcher.js", import.meta.url));
+document
+  .querySelector<MdFilledButton>("#testbtn")!
+  .addEventListener("click", async () => {
+    const worker = new Worker(new URL("./boot_patcher.js", import.meta.url));
 
-  worker.postMessage({ type: 'start', data: {} });
+    worker.postMessage({ type: "start", data: {} });
 
-  worker.onmessage = e => {
-    console.log("Received message from worker:", e.data);
+    worker.onmessage = (e) => {
+      const type = e.data.type;
+      const data = e.data.data;
 
-    const type = e.data.type;
-    const data = e.data.data;
+      switch (type) {
+        case "response":
+          logi(data);
+          break;
+        case "error":
+          loge(data);
+          break;
+        case "command":
+          terminal.writeln(data);
+          break;
+        case "progress":
+          print_progress(e.data.total, e.data.value, e.data.label);
+          break;
+        default:
+          console.log("Recived message from worker:", e.data);
+          break;
+      }
 
-    switch (type) {
-      case 'response':
-        logi(data);
-        break;
-      case 'error':
-        loge(data);
-        break;
-      case 'command':
-        terminal.writeln(data)
-        break;
-      default:
-        break;
-    }
+      // 如果 Worker 发送了 "done" 消息，终止 Worker
+      if (e.data.type === "done") {
+        worker.terminate(); // 终止 Worker
+        logs("Worker terminated.");
+      }
+    };
 
-    // 如果 Worker 发送了 "done" 消息，终止 Worker
-    if (e.data.type === "done") {
-      worker.terminate(); // 终止 Worker
-      logs("Worker terminated.");
-    }
-  };
-
-  worker.onerror = function (error) {
-    loge(`Worker error: ${error}`);
-  };
-});
+    worker.onerror = function (error) {
+      loge(`Worker error: ${error}`);
+    };
+  });
