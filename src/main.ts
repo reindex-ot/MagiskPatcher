@@ -347,11 +347,27 @@ document
       apkArray = await getArrayBuffer();
     }
 
+    let arch: string | null = null;
+    const architectures = ["arm64", "arm32", "x86_64", "x86"];
+    
+    for (const l of architectures) {
+      const radio = document.querySelector<MdRadio>(`#${l}`);
+      if (radio?.checked) {
+        arch = l;
+        break; // 找到选中的项后立即退出循环
+      }
+    }
+
     if (apkArray) {
       console.log("Get apk data:", apkArray);
       console.log("Get boot data:", bootArray);
       const metadata = {
         type: "start",
+        arch: arch,
+        env: {
+          KEEPVERITY: "true",
+          KEEPFORCEENCRYPT: "true",
+        },
       };
 
       const message = {
@@ -461,3 +477,8 @@ async function getArrayBuffer(): Promise<ArrayBuffer | null> {
     return null;
   }
 }
+
+terminal.writeln("\x1b[96mMagisk Patcher on WEB");
+terminal.writeln("\x1b[93mAuthor: \x1b[94m" + __author__);
+terminal.writeln("\x1b[93mVersion:\x1b[94m " + __version__);
+terminal.writeln("\x1b[0m");

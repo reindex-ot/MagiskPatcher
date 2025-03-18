@@ -15,9 +15,9 @@ function cprint(msg) {
 }
 
 self.onmessage = async function (event) {
-  const { data, metadata } = event.data;
+  const { apkBuffer, bootBuffer, metadata } = event.data;
 
-  console.log("Worker: Recived apk buffer:", data);
+  console.log("Worker with options:", metadata);
 
   // 创建 magiskboot 实例
   await magiskboot({
