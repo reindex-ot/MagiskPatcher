@@ -1,6 +1,6 @@
 // boot_patcher.js
 // Web Worker
-importScripts("/magiskboot.js");
+importScripts("/MagiskPatcher/magiskboot.js");
 
 function logi(msg) {
   self.postMessage({ type: "response", data: msg });
