@@ -10,11 +10,12 @@ import "@material/web/all.js";
 import "@xterm/xterm/css/xterm.css";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
-import { MdFilledButton, MdListItem, MdRadio } from "@material/web/all.js";
+import { MdFilledButton, MdFilterChip, MdListItem, MdRadio } from "@material/web/all.js";
 import axios from "axios";
+import JSZip from "jszip";
 
 // @ts-ignore
-const __version__ = "0.0.1";
+const __version__ = "0.1.0";
 // @ts-ignore
 const __author__ = "affggh";
 
@@ -55,12 +56,12 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
                 <h3>Arch</h3>
                 <md-list style="background-color: transparent;">
                   <md-list-item type="button" id="list1">
-                    <div for="arm64" slot="headline" style="user-select:none;">arm64</div>
-                    <md-radio id="arm64" name="group" value="1" slot="end" checked/>
+                    <div slot="headline" style="user-select:none;">arm64-v8a</div>
+                    <md-radio id="arm64-v8a" name="group" value="1" slot="end" checked/>
                   </md-list-item>
                   <md-list-item type="button" id="list2">
-                    <div slot="headline">arm32</div>
-                    <md-radio id="arm32" name="group" value="2" slot="end"/>
+                    <div slot="headline">armeabi-v7a</div>
+                    <md-radio id="armeabi-v7a" name="group" value="2" slot="end"/>
                   </md-list-item>
                   <md-list-item type="button" id="list3">
                     <div slot="headline">x86_64</div>
@@ -73,11 +74,11 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
                 </md-list>
                 <md-divider></md-divider>
                 <md-chip-set>
-                    <md-filter-chip label="Keep Verity" selected></md-filter-chip>
-                    <md-filter-chip label="Keep Force Encrypt" selected></md-filter-chip>
-                    <md-filter-chip label="Recovery Mode"></md-filter-chip>
-                    <md-filter-chip label="Patch Vbmeta Flag"></md-filter-chip>
-                    <md-filter-chip label="Legacy SAR Device"></md-filter-chip>
+                    <md-filter-chip id="kv" label="Keep Verity" selected></md-filter-chip>
+                    <md-filter-chip id="kfe" label="Keep Force Encrypt" selected></md-filter-chip>
+                    <md-filter-chip id="rm" label="Recovery Mode"></md-filter-chip>
+                    <md-filter-chip id="pvf" label="Patch Vbmeta Flag"></md-filter-chip>
+                    <md-filter-chip id="sar" label="Legacy SAR Device"></md-filter-chip>
                 </md-chip-set>
                 <div class="spacer"></div>
                 <md-linear-progress id="patchprogress" style="display: none;" indeterminate></md-linear-progress>
@@ -320,11 +321,11 @@ document.getElementById("up2btn")!.addEventListener("click", () => {
 });
 
 document.querySelector<MdListItem>("#list1")!.addEventListener("click", () => {
-  document.querySelector<MdRadio>("#arm64")!.checked = true;
+  document.querySelector<MdRadio>("#arm64-v8a")!.checked = true;
 });
 
 document.querySelector<MdListItem>("#list2")!.addEventListener("click", () => {
-  document.querySelector<MdRadio>("#arm32")!.checked = true;
+  document.querySelector<MdRadio>("#armeabi-v7a")!.checked = true;
 });
 document.querySelector<MdListItem>("#list4")!.addEventListener("click", () => {
   document.querySelector<MdRadio>("#x86_64")!.checked = true;
@@ -338,46 +339,54 @@ document
   .addEventListener("click", async () => {
     const worker = new Worker(new URL("./boot_patcher.js", import.meta.url));
 
-    if (!bootArray) {
-      loge("Boot image not loaded!");
-      return;
-    }
-
-    if (!apkArray) {
-      apkArray = await getArrayBuffer();
-    }
-
-    let arch: string | null = null;
-    const architectures = ["arm64", "arm32", "x86_64", "x86"];
-    
-    for (const l of architectures) {
-      const radio = document.querySelector<MdRadio>(`#${l}`);
-      if (radio?.checked) {
-        arch = l;
-        break; // 找到选中的项后立即退出循环
+    try {
+      if (!bootArray) {
+        loge("Boot image not loaded!");
+        return;
       }
-    }
 
-    if (apkArray) {
-      console.log("Get apk data:", apkArray);
-      console.log("Get boot data:", bootArray);
-      const metadata = {
-        type: "start",
-        arch: arch,
-        env: {
-          KEEPVERITY: "true",
-          KEEPFORCEENCRYPT: "true",
-        },
-      };
+      let arch: string | null = null;
+      const architectures = ["arm64-v8a", "armeabi-v7a", "x86_64", "x86"];
 
-      const message = {
-        apkBuffer: apkArray,
-        bootBuffer: bootArray,
-        metadata: metadata,
-      };
-      worker.postMessage(message);
-    } else {
-      loge("Could not get magisk from online!");
+      if (!apkArray) {
+        apkArray = await getArrayBuffer();
+      }
+
+      for (const l of architectures) {
+        const radio = document.querySelector<MdRadio>(`#${l}`);
+        if (radio?.checked) {
+          arch = l;
+          break; // 找到选中的项后立即退出循环
+        }
+      }
+
+      if (apkArray) {
+        const needed = await loadApkNeeded(apkArray, arch ?? 'arm64-v8a');
+        console.log('Needed:', needed);
+
+        const env = getFilterSelect();
+
+        console.log("Get apk data:", apkArray);
+        console.log("Get boot data:", bootArray);
+        const metadata = {
+          type: "start",
+          arch: arch,
+          env: env,
+        };
+
+        const message = {
+          apkBuffer: apkArray,
+          bootBuffer: bootArray,
+          needed: needed,
+          metadata: metadata,
+        };
+        worker.postMessage(message);
+      } else {
+        loge("Could not get magisk from online!");
+        return;
+      }
+    } catch (error) {
+      loge(`Error: ${error}`);
       return;
     }
 
@@ -405,8 +414,22 @@ document
 
       // 如果 Worker 发送了 "done" 消息，终止 Worker
       if (e.data.type === "done") {
+        const buffer = e.data.data;
+        //console.log(buffer);
         worker.terminate(); // 终止 Worker
         logs("Worker terminated.");
+        const blob = new Blob([buffer], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        if (a) {
+          a.href = url;
+          a.download = "new-boot.img";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+        URL.revokeObjectURL(url);
+        logs("Download starting...");
       }
     };
 
@@ -419,7 +442,7 @@ document
 async function getDownloadLink() {
   const apiurl =
     "https://api.github.com/repos/topjohnwu/Magisk/releases/latest";
-  const crosProxy = "https://api.codetabs.com/v1/proxy?quest=";
+  const crosProxy = "https://api.codetabs.com/v1/proxy?quest="; // cros proxy
   const response = await fetch(apiurl);
 
   if (!response.ok) {
@@ -474,6 +497,143 @@ async function getArrayBuffer(): Promise<ArrayBuffer | null> {
     } else {
       loge(`Unknown error: ${error}`);
     }
+    return null;
+  }
+}
+
+type FilterKeys = 'KEEPVERITY' | 'KEEPFORCEENCRYPT' | 'PATCHVBMETAFLAG' | 'RECOVERYMODE' | 'LEGACYSAR';
+
+function getFilterSelect() {
+  function convertName(l: string): FilterKeys | null {
+    switch (l) {
+      case 'kv':
+        return "KEEPVERITY";
+        break;
+      case 'kfe':
+        return "KEEPFORCEENCRYPT";
+        break;
+      case 'rm':
+        return "RECOVERYMODE";
+        break;
+      case 'pvf':
+        return "PATCHVBMETAFLAG";
+        break;
+      case 'sar':
+        return "LEGACYSAR";
+        break;
+      default:
+        break;
+    }
+    return null;
+  }
+
+  let ret = {
+    KEEPVERITY: 'false',
+    KEEPFORCEENCRYPT: 'false',
+    PATCHVBMETAFLAG: 'false',
+    RECOVERYMODE: 'false',
+    LEGACYSAR: 'false',
+  };
+
+  for (const l of ["kv", "kfe", "rm", "pvf", "sar"]) {
+    const state = document.querySelector<MdFilterChip>(`#${l}`)?.selected ?? false;
+    if (state) {
+      const key = convertName(l);
+      if (key) {
+        ret[key] = 'true'; // 将对应的属性值设置为 'true'
+      }
+    }
+  }
+
+  return ret; // 返回最终的结果对象
+}
+
+interface Needed {
+  [key: string]: ArrayBuffer;
+}
+
+async function loadApkNeeded(buffer: ArrayBuffer, arch: string): Promise<Needed | null> {
+  try {
+    const zip = await JSZip.loadAsync(buffer);
+
+    const ret: Needed = {};
+
+    // Use Promise.all to handle asynchronous operations inside the loop
+    const promises: Promise<void>[] = [];
+
+    let magiskVer = 0;
+    const ufuncs = await zip.file("assets/util_functions.sh")?.async('text');
+    if (!ufuncs) {
+      loge("Could not found magisk version!");
+      return null;
+    }
+
+    const matchResult = ufuncs.match(/MAGISK_VER_CODE=(\d+)/);
+    if (matchResult) {
+      magiskVer = Number.parseInt(matchResult[1]);
+      logi(`Get Magisk version code: ${magiskVer}`);
+    } else {
+      loge("Could not found magisk version from util_functions.sh!");
+      return null;
+    }
+
+
+    zip.forEach((rpath, file) => {
+      const parts = rpath.split('/');
+      const fileName = parts[parts.length - 1]; // Get the file name
+      const parentDir = parts[parts.length - 2]; // Get the parent directory
+
+      if (magiskVer < 28000) {
+        if (arch === "arm64-v8a") {
+          if (fileName == "libmagisk32.so" && "armeabi-v7a" === parentDir) {
+            promises.push(
+              file.async('arraybuffer').then((arrayBuffer) => {
+                ret[fileName.replace('lib', '').replace('.so', '')] = arrayBuffer;
+              })
+            );
+          }
+        } else if (arch === "x86_64") {
+          if (fileName == "libmagisk32.so" && "x86" === parentDir) {
+            promises.push(
+              file.async('arraybuffer').then((arrayBuffer) => {
+                ret[fileName.replace('lib', '').replace('.so', '')] = arrayBuffer;
+              })
+            );
+          }
+        }
+      }
+
+      if (fileName.startsWith('lib') && fileName.endsWith('.so') && parentDir === arch) {
+        // Push the async operation into the promises array
+        if (fileName == "libmagiskboot.so" || fileName == "libbusybox.so" || fileName == "libmagiskpolicy.so") {
+          return; // skip unused bin to reduce memories
+        }
+        promises.push(
+          file.async('arraybuffer').then((arrayBuffer) => {
+            ret[fileName.replace('lib', '').replace('.so', '')] = arrayBuffer;
+          })
+        );
+      } else {
+        if (fileName == "stub.apk") {
+          promises.push(
+            file.async('arraybuffer').then((arrayBuffer) => {
+              ret[fileName] = arrayBuffer;
+            }
+            ));
+        }
+      }
+    });
+
+    // Wait for all async operations to complete
+    await Promise.all(promises);
+
+    for (const k in ret) {
+      logi(`Loaded needed: ${k}`);
+    }
+
+    return ret;
+  } catch (error) {
+    loge(`Error: ${error}`);
     return null;
   }
 }
