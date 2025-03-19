@@ -31,7 +31,7 @@ self.onmessage = async function (event) {
       TMP = msg.trim();
     },
     printErr: (msg) => cprint(msg),
-    locateFile: (file) => "/magiskboot.wasm",
+    locateFile: (file) => "/MagiskPatcher/magiskboot.wasm",
   });
 
   function setenv(key, value) {
