@@ -48,7 +48,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
                     Upload Boot Image
                 </md-filled-button>
                 <input style="display: none;" type="file" name="up1" id="up1" accept=".img, .bin">
-                <md-filled-tonal-button style="flex-grow: 1;" id="up2btn" >
+                <md-filled-tonal-button id="up2btn" >
                     Upload Magisk Apk
                 </md-filled-tonal-button>
                 <input style="display:none;" type="file" name="up2" id="up2" accept=".apk, .zip">
