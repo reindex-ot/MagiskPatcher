@@ -15,7 +15,7 @@ html,
 body {
   margin: 0;
   padding: 0;
-  min-height: 100vh; /* 确保 html 和 body 的高度为 100% */
+  min-height: 100%; /* 确保 html 和 body 的高度为 100% */
   min-width: 100vw;
 }
 
@@ -112,6 +112,7 @@ footer {
   padding: 5px;
   text-align: end;
   user-select: none;
+  font-size: small;
 }
 
 .terminal {
