@@ -19,7 +19,7 @@ self.onmessage = async function (event) {
 
   console.log("Worker with options:", metadata);
 
-  let TMP = null;
+  let TMP = "";
   // 创建 magiskboot 实例
   const Module = await magiskboot({
     noInitialRun: true,
@@ -60,15 +60,15 @@ self.onmessage = async function (event) {
   }
 
   function grepProp(data, key) {
-    for (const line in data.split("\n")) {
-      if (line.includes("=")) {
-        const kv = line.trim().split("=");
-        if (kv[0] === key) {
-          return kv[1];
+    for (const line of data.split('\n')) {
+      if (line.includes('=')) {
+        const [k, v] = line.trim().split('=');
+        if (k === key) {
+          return v;
         }
       }
-      return null;
     }
+    return "";
   }
 
   for (const k in metadata.env) {
@@ -121,9 +121,6 @@ self.onmessage = async function (event) {
   switch (STATUS) {
     case 0:
       logi("- Stock boot image detected");
-      // 定义一个变量来捕获 SHA1
-      let SHA1 = "";
-
       Module.callMain(["sha1", "boot.img"]);
       SHA1 = TMP; // stdout stored at TMP
       copyFile(`${userDir}/ramdisk.cpio.orig`, `${userDir}/ramdisk.cpio`);
@@ -147,6 +144,7 @@ self.onmessage = async function (event) {
   if (isExist("config.orig")) {
     Module.FS.chmod("config.orig", 0o644); // This maybe not need
     const config = Module.FS.readFile("config.orig", { encoding: "utf8" });
+    console.log("Get config from FS:", config)
     SHA1 = grepProp(config, "SHA1");
     console.log("SHA1 from origin config:", SHA1);
     Module.FS.unlink("config.orig");
@@ -163,6 +161,7 @@ self.onmessage = async function (event) {
     }
   }
 
+  console.log("SHA1:", SHA1);
   // Write file config
   let config = "";
   config += `KEEPVERITY=${metadata.env.KEEPVERITY}\n`;
