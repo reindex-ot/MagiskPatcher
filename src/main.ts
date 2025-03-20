@@ -43,7 +43,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 
     <main>
         <div class="container">
-            <div class="column card" style="flex: 2; padding: 10px; min-width:400px">
+            <div class="column card" style="flex: 2; padding: 10px; min-width:300px">
                 <md-filled-button id="up1btn">
                     Upload Boot Image
                 </md-filled-button>
