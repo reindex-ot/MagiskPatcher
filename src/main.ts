@@ -15,7 +15,7 @@ import axios from "axios";
 import JSZip from "jszip";
 
 // @ts-ignore
-const __version__ = "0.1.2";
+const __version__ = "0.1.3";
 // @ts-ignore
 const __author__ = "affggh";
 
