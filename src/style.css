@@ -98,8 +98,8 @@ main {
   flex: 1;
   flex-direction: column;
   padding-top: 64px;
-  padding-bottom: 5px;
-  height: calc(100vh - 64px);
+  /*padding-bottom: 5px;*/
+  height: calc(100vh - 25px);
   align-items: center;
   flex-grow: 1;
   min-height: 100%;
@@ -107,6 +107,12 @@ main {
 }
 
 footer {
+  position: fixed; /* 固定定位 */
+  bottom: 0;       /* 紧贴底部 */
+  left: 0;         /* 从左到右撑满 */
+  right: 0;        /* 从左到右撑满 */
+  width: 100%;     /* 确保宽度撑满 */
+
   background-color: var(--md-sys-color-primary-container); /* 深紫色 */
   color: var(--md-sys-color-on-primary-container);
   padding: 5px;
