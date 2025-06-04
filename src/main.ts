@@ -356,7 +356,7 @@ document
         const radio = document.querySelector<MdRadio>(`#${l}`);
         if (radio?.checked) {
           arch = l;
-          break; // 找到选中的项后立即退出循环
+          break;
         }
       }
 
@@ -411,11 +411,11 @@ document
           break;
       }
 
-      // 如果 Worker 发送了 "done" 消息，终止 Worker
+      // if Worker send message "done"，terminate Worker
       if (e.data.type === "done") {
         const buffer = e.data.data;
         //console.log(buffer);
-        worker.terminate(); // 终止 Worker
+        worker.terminate(); // terminate Worker
         logs("Worker terminated.");
         const blob = new Blob([buffer], { type: 'application/octet-stream' });
         const url = URL.createObjectURL(blob);
@@ -485,7 +485,7 @@ async function getArrayBuffer(): Promise<ArrayBuffer | null> {
         print_progress(totalSize, e.loaded, "Loading from online...");
       },
     });
-    return resp.data; // 返回 ArrayBuffer
+    return resp.data; // return ArrayBuffer
   } catch (error) {
     if (axios.isAxiosError(error)) {
       loge(`Axios error: ${error.message}`);
@@ -539,12 +539,12 @@ function getFilterSelect() {
     if (state) {
       const key = convertName(l);
       if (key) {
-        ret[key] = 'true'; // 将对应的属性值设置为 'true'
+        ret[key] = 'true'; // set attribute 'true'
       }
     }
   }
 
-  return ret; // 返回最终的结果对象
+  return ret; // return final result
 }
 
 interface Needed {
