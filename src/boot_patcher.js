@@ -15,7 +15,7 @@ function cprint(msg) {
 }
 
 self.onmessage = async function (event) {
-  const { apkBuffer, bootBuffer, needed, metadata } = event.data;
+  const { bootBuffer, needed, metadata } = event.data;
 
   console.log("Worker with options:", metadata);
 

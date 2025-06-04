@@ -2,5 +2,5 @@
 	font-family: 'Iosevka Web';
 	font-stretch: normal;
 	font-style: normal;
-	src: url('fonts/Iosevka-Regular.woff2') format('woff2');
+	src:  url('fonts/Iosevka-Regular.woff2') format('woff2'), url('fonts/Iosevka-Regular.ttf') format('truetype');
 }

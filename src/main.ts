@@ -19,7 +19,7 @@ const __version__ = "0.1.2";
 // @ts-ignore
 const __author__ = "affggh";
 
-document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
+document.querySelector<HTMLDivElement>("#app")!.innerHTML = /* html */`
     <header class="appbar">
         <div class="row">
             <md-icon style="--md-icon-size: 36px" tabindex="-1">
@@ -121,7 +121,7 @@ if (darkModeMediaQuery.matches) {
 }
 
 const terminal = new Terminal({
-  fontFamily: "Iosevka, monospace",
+  fontFamily: "'Iosevka Web', 'Cascadia Code', 'Consolas', 'Courier New', monospace",
   fontSize: 14,
   letterSpacing: 0,
   theme: {
@@ -375,7 +375,6 @@ document
         };
 
         const message = {
-          apkBuffer: apkArray,
           bootBuffer: bootArray,
           needed: needed,
           metadata: metadata,
