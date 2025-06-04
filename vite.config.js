@@ -10,6 +10,7 @@ export default defineConfig({
         },
       },
     },
+    assetsInclude: ['**/*.ttf', '**/*.woff', '**/*.woff2'],
   },
   base: '/MagiskPatcher/'
 });
