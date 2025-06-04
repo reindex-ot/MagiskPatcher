@@ -106,6 +106,8 @@ self.onmessage = async function (event) {
       break;
   }
 
+  // Preinit device not impl on web yet
+
   logi("- Checking ramdisk status");
   let STATUS = 0;
   let SKIP_BACKUP = "";
@@ -153,11 +155,14 @@ self.onmessage = async function (event) {
   logi("- Patching ramdisk");
   let cpio_command_add = [];
   for (const f of ["magisk", "magisk32", "magisk64", "stub.apk", "init-ld"]) {
-    console.log("Try compress", f);
+    const cf = (typeof f === 'string' && f.trim() === "stub.apk") 
+      ? "stub.xz" 
+      : `${f}.xz`;
+    console.log("Try compress", f, "->", cf);
     if (isExist(f)) {
-      logi(`Compress ${f} info xz...`);
-      Module.callMain(["compress=xz", f, `${f}.xz`]);
-      cpio_command_add.push(`add 0644 overlay.d/sbin/${f}.xz ${f}.xz`);
+      logi(`Compress ${f} into xz...`);
+      Module.callMain(["compress=xz", f, cf]);
+      cpio_command_add.push(`add 0644 overlay.d/sbin/${cf} ${cf}`);
     }
   }
 
