@@ -1,9 +1,9 @@
 {
   "dependencies": {
-    "@material/web": "^2.2.0",
+    "@material/web": "^2.3.0",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
-    "axios": "^1.8.3",
+    "axios": "^1.9.0",
     "jszip": "^3.10.1"
   },
   "name": "magiskpatcher",
@@ -16,7 +16,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "typescript": "~5.7.2",
-    "vite": "^6.2.0"
+    "typescript": "~5.7.3",
+    "vite": "^6.3.5"
   }
 }
